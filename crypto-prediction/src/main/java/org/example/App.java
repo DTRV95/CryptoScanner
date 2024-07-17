@@ -44,10 +44,9 @@ public class App {
             }
         } else if (option == 2) {
             String interval = "1h"; // Interval for fetching historical data
-            String timeframe = "1d"; // Timeframe for analysis (e.g., daily)
 
             int smaPeriod = 20; // Period for Simple Moving Average (SMA)
-            int rsiPeriod = 14; // Period for Relative Strength Index (RSI)
+            int rsiPeriod = 12; // Period for Relative Strength Index (RSI)
             int shortEMAPeriod = 9; // Period for short Exponential Moving Average (EMA)
             int longEMAPeriod = 21; // Period for long Exponential Moving Average (EMA)
             int signalPeriod = 9; // Period for MACD Signal Line

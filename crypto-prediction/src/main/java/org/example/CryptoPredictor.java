@@ -14,9 +14,9 @@ public class CryptoPredictor {
         double sma = TechnicalIndicators.calculateSMA(prices, smaPeriod);
         double rsi = TechnicalIndicators.calculateRSI(prices, rsiPeriod);
 
-        boolean isBelowSMA = currentPrice < sma;
-        boolean isRSIInOversoldRange = rsi > 10 && rsi < 40;
+        boolean isAboveSMA = currentPrice > sma;
+        boolean isRSIInOversoldRange = rsi > 10 && rsi < 60;
 
-        return isBelowSMA && isRSIInOversoldRange;
+        return isAboveSMA && isRSIInOversoldRange;
     }
 }

@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 
 public class AllCryptoScanner {
 
-    public static List<PairAnalysis> findPairsToBuy(List<String> symbols, String interval, int smaPeriod, int rsiPeriod,
-                                                    int shortEMAPeriod, int longEMAPeriod, int signalPeriod) {
+    public static List<PairAnalysis> findPairsToBuy(List<String> symbols, String interval, int smaPeriod, int rsiPeriod, int shortEMAPeriod, int longEMAPeriod, int signalPeriod) {
+
         List<PairAnalysis> pairsToBuy = new ArrayList<>();
 
         List<CompletableFuture<Void>> futures = symbols.stream().map(symbol -> CompletableFuture.runAsync(() -> {
@@ -23,10 +23,11 @@ public class AllCryptoScanner {
                     double sma = TechnicalIndicators.calculateSMA(prices, smaPeriod);
                     double rsi = TechnicalIndicators.calculateRSI(prices, rsiPeriod);
 
-
-                    PairAnalysis analysis = new PairAnalysis(formattedPair, currentPrice, sma, rsi);
-                    synchronized (pairsToBuy) {
-                        pairsToBuy.add(analysis);
+                    if(formattedPair.endsWith("USDT") || formattedPair.endsWith("USDC") || formattedPair.endsWith("EUR")){
+                            PairAnalysis analysis = new PairAnalysis(formattedPair, currentPrice, sma, rsi);
+                            synchronized (pairsToBuy) {
+                                pairsToBuy.add(analysis);
+                            }
                     }
                 }
             } catch (IOException e) {
@@ -36,13 +37,15 @@ public class AllCryptoScanner {
 
         futures.forEach(CompletableFuture::join);
 
+        pairsToBuy.sort((a, b) -> Double.compare(b.getRsi(), a.getRsi()));
+
         return pairsToBuy;
     }
 
     private static String formatSymbol(String symbol) {
         return symbol.replace("BUSD", "BUS/D")
-                .replace("USDT", "US/T")
-                .replace("TUSD", "TU/SD");
+                .replace("USDT", "US/T");
+
     }
 
     public static class PairAnalysis {
@@ -50,20 +53,22 @@ public class AllCryptoScanner {
         public double currentPrice;
         public double sma;
         public double rsi;
-        public double volume;
 
         public PairAnalysis(String symbol, double currentPrice, double sma, double rsi) {
             this.symbol = symbol;
             this.currentPrice = currentPrice;
             this.sma = sma;
             this.rsi = rsi;
-            this.volume = volume;
+        }
+
+        public double getRsi() {
+            return rsi;
         }
 
         @Override
         public String toString() {
-            return String.format("Symbol: %s, Price: %.6f, SMA: %.6f, RSI: %.2f, Volume: %.2f",
-                    symbol, currentPrice, sma, rsi, volume);
+            return String.format("Symbol: %s, Price: %.6f, SMA: %.6f, RSI: %.2f",
+                    symbol, currentPrice, sma, rsi);
         }
     }
 }
