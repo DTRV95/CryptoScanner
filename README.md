@@ -5,7 +5,8 @@ CryptoScannerRSI is a Java application designed for scanning cryptocurrency pair
 
 🚧 **This project is currently in development.** 🚧
 
-Features
+
+##Features
 
 Single Pair Analysis: 
 
