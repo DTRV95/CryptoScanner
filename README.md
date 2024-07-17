@@ -1,6 +1,10 @@
 # CryptoScanner
 CryptoScannerRSI is a Java application designed for scanning cryptocurrency pairs on Binance exchange. It uses some technical indicators such as Simple Moving Average (SMA), Relative Strength Index (RSI) to analyze historical price data and identify potential buying opportunities.
 
+## Status
+
+🚧 **This project is currently in development.** 🚧
+
 Features
 
 Single Pair Analysis: 
