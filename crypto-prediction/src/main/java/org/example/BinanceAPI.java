@@ -6,6 +6,7 @@ import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,6 @@ public class BinanceAPI {
     private static final String BASE_URL = "https://api.binance.com";
 
     public static List<Double> fetchHistoricalPrices(String symbol, String interval, int limit) throws IOException {
-
         OkHttpClient client = new OkHttpClient();
         String url = BASE_URL + "/api/v3/klines?symbol=" + symbol + "&interval=" + interval + "&limit=" + limit;
 
@@ -36,8 +36,28 @@ public class BinanceAPI {
         return prices;
     }
 
-    public static List<String> fetchAllSymbols() throws IOException {
+    public static List<Double> fetchHistoricalVolumes(String symbol, String interval, int limit) throws IOException {
+        OkHttpClient client = new OkHttpClient();
+        String url = BASE_URL + "/api/v3/klines?symbol=" + symbol + "&interval=" + interval + "&limit=" + limit;
 
+        Request request = new Request.Builder().url(url).build();
+        Response response = client.newCall(request).execute();
+
+        if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+        String responseData = response.body().string();
+        JSONArray jsonArray = new JSONArray(responseData);
+
+        List<Double> volumes = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONArray kline = jsonArray.getJSONArray(i);
+            double volume = kline.getDouble(5);
+            volumes.add(volume);
+        }
+        return volumes;
+    }
+
+    public static List<String> fetchAllSymbols() throws IOException {
         OkHttpClient client = new OkHttpClient();
         String url = BASE_URL + "/api/v3/exchangeInfo";
 
@@ -68,3 +88,4 @@ public class BinanceAPI {
         }
     }
 }
+

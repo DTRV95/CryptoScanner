@@ -31,10 +31,10 @@ public class App {
             System.out.println("Searching for data on Binance..");
             try {
                 List<Double> prices = BinanceAPI.fetchHistoricalPrices(symbol, interval, 100);
-
+                List<Double> volumes = BinanceAPI.fetchHistoricalVolumes(symbol, interval, 100);
 
                 double sma = TechnicalIndicators.calculateSMA(prices, smaPeriod);
-                boolean shouldBuy = CryptoPredictor.shouldBuy(prices,smaPeriod, rsiPeriod, shortEMAPeriod, longEMAPeriod);
+                boolean shouldBuy = CryptoPredictor.shouldBuy(prices, volumes, smaPeriod, rsiPeriod, shortEMAPeriod, longEMAPeriod);
 
                 System.out.printf("SMA: %.6f%n", sma);
                 System.out.printf("Current Price: %.6f%n", prices.get(prices.size() - 1));
@@ -46,7 +46,7 @@ public class App {
             String interval = "1h"; // Interval for fetching historical data
 
             int smaPeriod = 20; // Period for Simple Moving Average (SMA)
-            int rsiPeriod = 12; // Period for Relative Strength Index (RSI)
+            int rsiPeriod = 14; // Period for Relative Strength Index (RSI)
             int shortEMAPeriod = 9; // Period for short Exponential Moving Average (EMA)
             int longEMAPeriod = 21; // Period for long Exponential Moving Average (EMA)
             int signalPeriod = 9; // Period for MACD Signal Line

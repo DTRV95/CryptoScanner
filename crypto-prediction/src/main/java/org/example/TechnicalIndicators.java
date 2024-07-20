@@ -76,19 +76,29 @@ public class TechnicalIndicators {
         return ema;
     }
 
-    public static double[] calculateBollingerBands(List<Double> prices, int period, double multiplier) {
-        if (prices.size() < period) {
-            throw new IllegalArgumentException("Not enough data to calculate Bollinger Bands");
-        }
+    public static boolean isNearSupport(List<Double> prices, double currentPrice) {
+        // Logic to identify if the current price is near a support level
+        double supportLevel = findSupport(prices);
+        return currentPrice <= supportLevel * 1.05;
+    }
 
-        double sma = calculateSMA(prices, period);
-        double variance = 0.0;
-        for (int i = prices.size() - period; i < prices.size(); i++) {
-            variance += Math.pow(prices.get(i) - sma, 2);
-        }
-        variance /= period;
-        double stdDev = Math.sqrt(variance);
+    public static boolean isNearResistance(List<Double> prices, double currentPrice) {
+        // Logic to identify if the current price is near a resistance level
+        double resistanceLevel = findResistance(prices);
+        return currentPrice >= resistanceLevel * 0.95;
+    }
 
-        return new double[]{sma - multiplier * stdDev, sma + multiplier * stdDev};
+    public static double findSupport(List<Double> prices) {
+        // Simplified example of finding a support level
+        return prices.stream().min(Double::compare).orElseThrow(IllegalArgumentException::new);
+    }
+
+    public static double findResistance(List<Double> prices) {
+        // Simplified example of finding a resistance level
+        return prices.stream().max(Double::compare).orElseThrow(IllegalArgumentException::new);
+    }
+
+    public static double calculateAverageVolume(List<Double> volumes) {
+        return volumes.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
     }
 }
