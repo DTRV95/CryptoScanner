@@ -77,24 +77,20 @@ public class TechnicalIndicators {
     }
 
     public static boolean isNearSupport(List<Double> prices, double currentPrice) {
-        // Logic to identify if the current price is near a support level
         double supportLevel = findSupport(prices);
         return currentPrice <= supportLevel * 1.05;
     }
 
     public static boolean isNearResistance(List<Double> prices, double currentPrice) {
-        // Logic to identify if the current price is near a resistance level
         double resistanceLevel = findResistance(prices);
         return currentPrice >= resistanceLevel * 0.95;
     }
 
     public static double findSupport(List<Double> prices) {
-        // Simplified example of finding a support level
         return prices.stream().min(Double::compare).orElseThrow(IllegalArgumentException::new);
     }
 
     public static double findResistance(List<Double> prices) {
-        // Simplified example of finding a resistance level
         return prices.stream().max(Double::compare).orElseThrow(IllegalArgumentException::new);
     }
 

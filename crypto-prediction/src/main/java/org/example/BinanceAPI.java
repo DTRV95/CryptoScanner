@@ -69,11 +69,11 @@ public class BinanceAPI {
         }
 
         String responseData = response.body().string();
-        System.out.println("Response from Binance API: " + responseData); // Add this line for debugging
+        System.out.println("Response from Binance API: " + responseData);
 
         try {
-            JSONObject jsonObject = new JSONObject(responseData); // Expecting a JSON object
-            JSONArray symbolsArray = jsonObject.getJSONArray("symbols"); // Extracting the symbols array
+            JSONObject jsonObject = new JSONObject(responseData);
+            JSONArray symbolsArray = jsonObject.getJSONArray("symbols");
 
             List<String> symbols = new ArrayList<>();
             for (int i = 0; i < symbolsArray.length(); i++) {
@@ -82,10 +82,8 @@ public class BinanceAPI {
             }
             return symbols;
         } catch (JSONException e) {
-            // Log the actual response data to help diagnose the issue
             System.err.println("Error parsing JSON response: " + responseData);
-            throw e; // Rethrow the exception or handle it as appropriate for your application
+            throw e;
         }
     }
 }
-
