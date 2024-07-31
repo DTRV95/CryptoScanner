@@ -14,9 +14,8 @@ public class App {
             System.out.println("Choose an option:");
             System.out.println("1. Check a specific crypto pair");
             System.out.println("2. Scan all crypto pairs on Binance");
-            System.out.println("3. Analyze your pairs");
-            System.out.println("4. Check market trend");
-            System.out.println("5. Exit");
+            System.out.println("3. Check market trend");
+            System.out.println("4. Exit");
             int option = scanner.nextInt();
             scanner.nextLine(); // Consume newline
 
@@ -27,13 +26,11 @@ public class App {
                 case 2:
                     scanAllCryptoPairs();
                     break;
+
                 case 3:
-                    analyzeYourPairs(scanner);
-                    break;
-                case 4:
                     checkMarketTrend(scanner);
                     break;
-                case 5:
+                case 4:
                     exit = true;
                     break;
                 default:
@@ -54,6 +51,7 @@ public class App {
         int shortEMAPeriod = 12;
         int longEMAPeriod = 26;
         int signalPeriod = 9;
+        double numStdDev = 2.0;
 
         System.out.println("Searching for data on Binance...");
         try {
@@ -66,17 +64,17 @@ public class App {
             double volume = volumes.get(volumes.size() - 1);
             double buyPrice = TechnicalIndicators.findSupport(prices);
             double sellPrice = TechnicalIndicators.findResistance(prices);
-            boolean shouldBuy = CryptoPredictor.shouldBuy(prices, volumes, smaPeriod, rsiPeriod, shortEMAPeriod, longEMAPeriod);
-            boolean shouldSell = CryptoPredictor.shouldSell(prices, rsiPeriod, shortEMAPeriod, longEMAPeriod);
+            double[] bollingerBands = TechnicalIndicators.calculateBollingerBands(prices, smaPeriod, numStdDev);
+            Action action = CryptoPredictor.determineAction(prices, volumes, smaPeriod, rsiPeriod, shortEMAPeriod, longEMAPeriod, signalPeriod);
 
             System.out.printf("SMA: %.6f%n", sma);
             System.out.printf("Current Price: %.6f%n", currentPrice);
             System.out.printf("RSI: %.2f%n", rsi);
             System.out.printf("Volume: %.2f%n", volume);
+            System.out.printf("Bollinger Bands (Upper, Middle, Lower): %.6f, %.6f, %.6f%n", bollingerBands[0], bollingerBands[1], bollingerBands[2]);
             System.out.printf("Buy at: %.6f%n", buyPrice);
             System.out.printf("Sell at: %.6f%n", sellPrice);
-            System.out.println("Should buy? " + (shouldBuy ? "Yes" : "No"));
-            System.out.println("Should sell? " + (shouldSell ? "Yes" : "No"));
+            System.out.println("Action: " + action);
         } catch (IOException e) {
             System.out.println("Error trying to find any data on Binance: " + e.getMessage());
         }
@@ -115,56 +113,18 @@ public class App {
         }
     }
 
-    private static void analyzeYourPairs(Scanner scanner) {
-        System.out.println("Enter the number of pairs you want to analyze:");
-        int numPairs = scanner.nextInt();
-        scanner.nextLine();
-
-        List<PairAnalysis> userPairs = new ArrayList<>();
-
-        for (int i = 0; i < numPairs; i++) {
-            System.out.println("Enter the CryptoSymbol (ex:BTCUSDT): ");
-            String symbol = scanner.nextLine().toUpperCase();
-
-            System.out.println("Enter the TimeFrame (ex: 1d, 1h): ");
-            String interval = scanner.nextLine();
-
-            System.out.println("Enter the price you bought at: ");
-            double buyPrice = scanner.nextDouble();
-            scanner.nextLine();
-
-            try {
-                List<Double> prices = BinanceAPI.fetchHistoricalPrices(symbol, interval, 100);
-
-                double sellPrice = TechnicalIndicators.findResistance(prices);
-
-                userPairs.add(new PairAnalysis(symbol, buyPrice, sellPrice));
-            } catch (IOException e) {
-                System.out.println("Error trying to find any data on Binance: " + e.getMessage());
-            }
-        }
-
-        if (userPairs.isEmpty()) {
-            System.out.println("No pairs found that meet the criteria.");
-        } else {
-            System.out.println("Pairs to consider selling:");
-            for (PairAnalysis analysis : userPairs) {
-                System.out.println(analysis);
-            }
-        }
-    }
 
     private static void checkMarketTrend(Scanner scanner) {
         System.out.println("Choose an option:");
-        System.out.println("4.1. Check a specific crypto pair");
-        System.out.println("4.2. Check market trend for all pairs");
+        System.out.println("3.1. Check a specific crypto pair");
+        System.out.println("3.2. Check market trend for all pairs");
         String option = scanner.nextLine();
 
         switch (option) {
-            case "4.1":
+            case "3.1":
                 checkSpecificPairMarketTrend(scanner);
                 break;
-            case "4.2":
+            case "3.2":
                 checkGeneralMarketTrend();
                 break;
             default:
@@ -188,12 +148,12 @@ public class App {
             double sma = TechnicalIndicators.calculateSMA(prices, smaPeriod);
             double currentPrice = prices.get(prices.size() - 1);
             boolean isTrendingUp = currentPrice > sma;
+            Action action = isTrendingUp ? Action.BUY : Action.SELL;
 
             System.out.printf("SMA: %.6f%n", sma);
             System.out.printf("Current Price: %.6f%n", currentPrice);
             System.out.println("Market trend: " + (isTrendingUp ? "Up" : "Down"));
-            System.out.println("Should buy? " + (isTrendingUp ? "Yes" : "No"));
-            System.out.println("Should sell? " + (!isTrendingUp ? "Yes" : "No"));
+            System.out.println("Action: " + action);
         } catch (IOException e) {
             System.out.println("Error trying to find any data on Binance: " + e.getMessage());
         }
@@ -231,6 +191,8 @@ public class App {
             System.out.println("Number of pairs trending up: " + upCount);
             System.out.println("Number of pairs trending down: " + downCount);
             System.out.println("Overall market trend: " + (upCount > downCount ? "Up" : "Down"));
+            Action action = upCount > downCount ? Action.BUY : Action.SELL;
+            System.out.println("Action: " + action);
         } catch (IOException e) {
             System.out.println("Error fetching data from Binance: " + e.getMessage());
         }

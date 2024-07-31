@@ -25,15 +25,31 @@ public class CryptoPredictor {
         return (isBelowSMA && isRSIInOversoldRange && isMACDPositive && isNearSupport) || (isRSIInOversoldRange && isNearSupport && volume > TechnicalIndicators.calculateAverageVolume(volumes));
     }
 
-    public static boolean shouldSell(List<Double> prices, int rsiPeriod, int shortEMAPeriod, int longEMAPeriod) {
-        double currentPrice = prices.get(prices.size() - 1);
-        double rsi = TechnicalIndicators.calculateRSI(prices, rsiPeriod);
-        double[] macd = TechnicalIndicators.calculateMACD(prices, shortEMAPeriod, longEMAPeriod, 9); // Signal period fixed at 9
+    public static Action determineAction(List<Double> prices, List<Double> volumes, int smaPeriod, int rsiPeriod, int shortEMAPeriod, int longEMAPeriod, int signalPeriod) {
+            if (prices.size() < smaPeriod || prices.size() < rsiPeriod + 1 || prices.size() < longEMAPeriod + 1) {
+                return Action.HOLD;
+            }
 
-        boolean isRSIOverbought = rsi > 60;
-        boolean isMACDNegative = macd[0] < macd[1]; // MACD line is below signal line
-        boolean isNearResistance = TechnicalIndicators.isNearResistance(prices, currentPrice);
+            double currentPrice = prices.get(prices.size() - 1);
+            double sma = TechnicalIndicators.calculateSMA(prices, smaPeriod);
+            double rsi = TechnicalIndicators.calculateRSI(prices, rsiPeriod);
+            double[] macd = TechnicalIndicators.calculateMACD(prices, shortEMAPeriod, longEMAPeriod, signalPeriod);
+            double[] bollingerBands = TechnicalIndicators.calculateBollingerBands(prices, smaPeriod, 2.0);
 
-        return isRSIOverbought || isMACDNegative || isNearResistance;
+            boolean isTrendingUp = currentPrice > sma;
+            boolean isRSIInOversoldRange = rsi > 15 && rsi < 30;
+            boolean isRSIOverbought = rsi > 60;
+            boolean isMACDPositive = macd[0] > macd[1];
+            boolean isMACDNegative = macd[0] < macd[1];
+            boolean isAboveUpperBollingerBand = currentPrice > bollingerBands[0];
+            boolean isBelowLowerBollingerBand = currentPrice < bollingerBands[2];
+
+            if (isTrendingUp && isRSIInOversoldRange && isMACDPositive && TechnicalIndicators.isNearSupport(prices, currentPrice)) {
+                return Action.BUY;
+            } else if ((!isTrendingUp && (isRSIOverbought || isMACDNegative || TechnicalIndicators.isNearResistance(prices, currentPrice) || isAboveUpperBollingerBand))) {
+                return Action.SELL;
+            } else {
+                return Action.HOLD;
+            }
+        }
     }
-}

@@ -97,4 +97,26 @@ public class TechnicalIndicators {
     public static double calculateAverageVolume(List<Double> volumes) {
         return volumes.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
     }
+
+    public static double[] calculateBollingerBands(List<Double> prices, int period, double numStdDev) {
+        double[] bands = new double[3];
+        double sma = calculateSMA(prices, period);
+        double stdDev = calculateStdDev(prices, period);
+
+        bands[0] = sma + numStdDev * stdDev; // Upper Band
+        bands[1] = sma;                      // Middle Band (SMA)
+        bands[2] = sma - numStdDev * stdDev; // Lower Band
+
+        return bands;
+    }
+
+    private static double calculateStdDev(List<Double> prices, int period) {
+        double mean = calculateSMA(prices, period);
+        double sumSquaredDiffs = 0.0;
+        for (int i = prices.size() - period; i < prices.size(); i++) {
+            double diff = prices.get(i) - mean;
+            sumSquaredDiffs += diff * diff;
+        }
+        return Math.sqrt(sumSquaredDiffs / period);
+    }
 }
