@@ -14,10 +14,11 @@ public class App {
             System.out.println("Choose an option:");
             System.out.println("1. Check a specific crypto pair");
             System.out.println("2. Scan all crypto pairs on Binance");
-            System.out.println("3. Check market trend");
-            System.out.println("4. Exit");
+            System.out.println("3. Analyze your pairs");
+            System.out.println("4. Check market trend");
+            System.out.println("5. Exit");
             int option = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            scanner.nextLine();
 
             switch (option) {
                 case 1:
@@ -26,11 +27,13 @@ public class App {
                 case 2:
                     scanAllCryptoPairs();
                     break;
-
                 case 3:
-                    checkMarketTrend(scanner);
+                    analyzeYourPairs(scanner);
                     break;
                 case 4:
+                    checkMarketTrend(scanner);
+                    break;
+                case 5:
                     exit = true;
                     break;
                 default:
@@ -43,10 +46,11 @@ public class App {
         System.out.println("Tell the CryptoSymbol (ex:BTCUSDT): ");
         String symbol = scanner.nextLine().toUpperCase();
 
-        System.out.println("Tell the TimeFrame (ex: 1d, 1h): ");
+        System.out.println("Tell the TimeFrame (ex: 1d, 1h, 1m): ");
         String interval = scanner.nextLine();
+        String intervalType = getIntervalType(interval);
 
-        int smaPeriod = 20;
+        int smaPeriod = 24;
         int rsiPeriod = 14;
         int shortEMAPeriod = 12;
         int longEMAPeriod = 26;
@@ -66,17 +70,60 @@ public class App {
             double sellPrice = TechnicalIndicators.findResistance(prices);
             double[] bollingerBands = TechnicalIndicators.calculateBollingerBands(prices, smaPeriod, numStdDev);
             Action action = CryptoPredictor.determineAction(prices, volumes, smaPeriod, rsiPeriod, shortEMAPeriod, longEMAPeriod, signalPeriod);
+            double predictedPrice = PricePredictor.predictNextPrice(prices);
+            String estimatedTimeToReach = PricePredictor.estimateTimeToReachPrice(prices, predictedPrice, intervalType);
 
             System.out.printf("SMA: %.6f%n", sma);
             System.out.printf("Current Price: %.6f%n", currentPrice);
             System.out.printf("RSI: %.2f%n", rsi);
             System.out.printf("Volume: %.2f%n", volume);
-            System.out.printf("Bollinger Bands (Upper, Middle, Lower): %.6f, %.6f, %.6f%n", bollingerBands[0], bollingerBands[1], bollingerBands[2]);
             System.out.printf("Buy at: %.6f%n", buyPrice);
             System.out.printf("Sell at: %.6f%n", sellPrice);
+            System.out.printf("Bollinger Bands (Upper, Middle, Lower): %.6f, %.6f, %.6f%n", bollingerBands[0], bollingerBands[1], bollingerBands[2]);
+            System.out.printf("Predicted Next Price: %.6f%n", predictedPrice);
+            System.out.printf("Estimated Time to Reach Predicted Price: %s%n", estimatedTimeToReach);
             System.out.println("Action: " + action);
+
+            TradeLogger.logTrade(symbol, action, currentPrice, volume);
         } catch (IOException e) {
             System.out.println("Error trying to find any data on Binance: " + e.getMessage());
+        }
+    }
+
+    private static String getIntervalType(String interval) {
+        switch (interval) {
+            case "1m":
+                return "minutes";
+            case "3m":
+                return "minutes";
+            case "5m":
+                return "minutes";
+            case "15m":
+                return "minutes";
+            case "30m":
+                return "minutes";
+            case "1h":
+                return "hours";
+            case "2h":
+                return "hours";
+            case "4h":
+                return "hours";
+            case "6h":
+                return "hours";
+            case "8h":
+                return "hours";
+            case "12h":
+                return "hours";
+            case "1d":
+                return "days";
+            case "3d":
+                return "days";
+            case "1w":
+                return "weeks";
+            case "1M":
+                return "months";
+            default:
+                return "intervals";
         }
     }
 
@@ -113,18 +160,56 @@ public class App {
         }
     }
 
+    private static void analyzeYourPairs(Scanner scanner) {
+        System.out.println("Enter the number of pairs you want to analyze:");
+        int numPairs = scanner.nextInt();
+        scanner.nextLine();
+
+        List<PairAnalysis> userPairs = new ArrayList<>();
+
+        for (int i = 0; i < numPairs; i++) {
+            System.out.println("Enter the CryptoSymbol (ex:BTCUSDT): ");
+            String symbol = scanner.nextLine().toUpperCase();
+
+            System.out.println("Enter the TimeFrame (ex: 1d, 1h): ");
+            String interval = scanner.nextLine();
+
+            System.out.println("Enter the price you bought at: ");
+            double buyPrice = scanner.nextDouble();
+            scanner.nextLine();
+
+            try {
+                List<Double> prices = BinanceAPI.fetchHistoricalPrices(symbol, interval, 100);
+
+                double sellPrice = TechnicalIndicators.findResistance(prices);
+
+                userPairs.add(new PairAnalysis(symbol, buyPrice, sellPrice));
+            } catch (IOException e) {
+                System.out.println("Error trying to find any data on Binance: " + e.getMessage());
+            }
+        }
+
+        if (userPairs.isEmpty()) {
+            System.out.println("No pairs found that meet the criteria.");
+        } else {
+            System.out.println("Pairs to consider selling:");
+            for (PairAnalysis analysis : userPairs) {
+                System.out.println(analysis);
+            }
+        }
+    }
 
     private static void checkMarketTrend(Scanner scanner) {
         System.out.println("Choose an option:");
-        System.out.println("3.1. Check a specific crypto pair");
-        System.out.println("3.2. Check market trend for all pairs");
+        System.out.println("4.1. Check a specific crypto pair");
+        System.out.println("4.2. Check market trend for all pairs");
         String option = scanner.nextLine();
 
         switch (option) {
-            case "3.1":
+            case "4.1":
                 checkSpecificPairMarketTrend(scanner);
                 break;
-            case "3.2":
+            case "4.2":
                 checkGeneralMarketTrend();
                 break;
             default:
